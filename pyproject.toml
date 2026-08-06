@@ -1,0 +1,42 @@
+[project]
+name = "pretix-picklePOS"
+dynamic = ["version"]
+description = "Alternative POS system for Pretix that allows creating and modifying orders"
+readme = "README.rst"
+license = {text = "Apache"}
+keywords = ["pretix"]
+authors = [
+    {name = "Douwe Somers", email = "draakjeyoblama@gmail.com"},
+]
+maintainers = [
+    {name = "Douwe Somers", email = "draakjeyoblama@gmail.com"},
+]
+
+dependencies = [
+]
+
+[project.entry-points."pretix.plugin"]
+pretix_picklePOS = "pretix_picklePOS:PretixPluginMeta"
+
+[project.entry-points."distutils.commands"]
+build = "pretix_plugin_build.build:CustomBuild"
+
+[build-system]
+requires = [
+    "setuptools",
+    "pretix-plugin-build",
+]
+
+[project.urls]
+homepage = "https://github.com/Preparee-impro/pretix-picklePOS"
+repository = "https://github.com/Preparee-impro/pretix-picklePOS"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.dynamic]
+version = {attr = "pretix_picklePOS.__version__"}
+
+[tool.setuptools.packages.find]
+include = ["pretix*"]
+namespaces = false
