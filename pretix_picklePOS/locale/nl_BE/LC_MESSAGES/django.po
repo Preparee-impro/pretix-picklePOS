@@ -1,0 +1,38 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-08-09 22:06+0200\n"
+"PO-Revision-Date: \n"
+"Last-Translator: Douwe Somers\n"
+"Language-Team: \n"
+"Language: de\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: pretix_picklePOS/apps.py
+msgid "picklePOS"
+msgstr ""
+
+#: pretix_picklePOS/apps.py
+msgid ""
+"Alternative POS system for Pretix that allows creating and modifying orders"
+msgstr ""
+
+#: pretix_picklePOS/signals.py
+msgid "Front Desk"
+msgstr ""
+
+#: pretix_picklePOS/templates/pretix_picklePOS/frontdesk.html
+msgid ""
+"\n"
+"Front Desk\n"
+msgstr ""
+
+#: pretix_picklePOS/templates/pretix_picklePOS/frontdesk.html
+msgid ""
+"\n"
+"<h1>Front Desk</h1>\n"
+"<p>The plugin is working.</p>\n"
+msgstr ""
