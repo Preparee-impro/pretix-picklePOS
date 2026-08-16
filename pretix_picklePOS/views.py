@@ -37,6 +37,14 @@ class POSCheckoutView(EventPermissionRequiredMixin, View):
             if not cart and not edit_code:
                 return JsonResponse({'success': False, 'error': 'Cart is empty'}, status=400)
 
+            sales_channel, created = SalesChannel.objects.get_or_create(
+                organizer=request.event.organizer,
+                identifier='picklePOS',
+                defaults={
+                    'type': 'picklePOS'
+                }
+            )
+
             with transaction.atomic():
                 total = Decimal('0.00')
                 positions_to_create = []
@@ -82,7 +90,6 @@ class POSCheckoutView(EventPermissionRequiredMixin, View):
                             item=pos['item'],
                             variation=pos['variation'],
                             price=pos['price'],
-                            attendee_name_parts={'_legacy': 'POS Sale (Edited)'},
                         )
                     
                     # Update Pretix financial ledger
@@ -117,11 +124,12 @@ class POSCheckoutView(EventPermissionRequiredMixin, View):
                     order = Order(
                         status=Order.STATUS_PENDING,
                         event=request.event,
-                        email='pos-sales@localhost',
+                        email='pos-sales@example.invalid',
                         datetime=now(),
                         expires=now(),
                         total=total,
                         locale=request.event.settings.locale,
+                        sales_channel=sales_channel,
                     )
                     order.save()
                     
@@ -131,7 +139,6 @@ class POSCheckoutView(EventPermissionRequiredMixin, View):
                             item=pos['item'],
                             variation=pos['variation'],
                             price=pos['price'],
-                            attendee_name_parts={'_legacy': 'POS Sale'},
                         )
                         
                     order.create_transactions()
@@ -142,7 +149,7 @@ class POSCheckoutView(EventPermissionRequiredMixin, View):
                         state=OrderPayment.PAYMENT_STATE_CREATED,
                         payment_date=now()
                     )
-                    payment.confirm(force=True)
+                    payment.confirm(force=True, send_mail=False)
 
             return JsonResponse({
                 'success': True, 

@@ -3,7 +3,7 @@ picklePOS
 
 This is a plugin for `pretix`_. 
 
-Alternative POS system for Pretix that allows creating and modifying orders
+POS system for Pretix that allows quickly creating and modifying orders for front desk staff.
 
 Development setup
 -----------------
