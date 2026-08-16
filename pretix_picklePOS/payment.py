@@ -51,7 +51,7 @@ class PayAtEntrance(BasePaymentProvider):
 
     def payment_pending_render(self, request, order):
         # We output a hidden marker and our custom friendly message
-        return mark_safe('<div id="picklepos-pay-at-entrance-marker" style="display: none;"></div>')
+        return mark_safe('<div id="picklepos-pay-at-entrance-marker" class="hidden"></div>')
     
     @property
     def is_implicit(self):

@@ -9,3 +9,31 @@
     appearance: textfield;
     -moz-appearance: textfield;
 }
+
+/* Initial hidden states for POS elements */
+.init-hidden {
+    display: none;
+}
+
+/* Custom spacing and colors */
+#search-results-container {
+    margin-top: 15px;
+}
+
+#cancel-edit-btn {
+    margin-top: 10px;
+}
+
+#cart-difference-row {
+    color: #d9534f; /* Red color for difference */
+    margin-top: 5px; 
+}
+
+#cart-already-paid-row {
+    color: #777;
+    margin-top: 5px;
+}
+
+.spacer {
+    margin-top: 15px;
+}

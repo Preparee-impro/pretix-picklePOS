@@ -30,7 +30,7 @@
                 </button>
             </span>
         </div>
-        <div id="search-results-container" class="list-group" style="margin-top: 15px; display: none;">
+        <div id="search-results-container" class="list-group init-hidden">
             <!-- Search results will be injected here -->
         </div>
     </div>
@@ -122,12 +122,12 @@
             </div>
             <div class="panel-body" id="cart-container">
                 <!-- Edit Mode Banner -->
-                <div id="edit-mode-banner" class="alert alert-warning" style="display: none;">
+                <div id="edit-mode-banner" class="alert alert-warning init-hidden">
                     <strong>{% trans "Editing Order:" %} <span id="edit-order-code-display"></span></strong>
                     <br>
                     {% trans "Original Total:" %} <span id="edit-original-total">0.00</span>
                     {{ request.event.currency }}
-                    <button id="cancel-edit-btn" class="btn btn-default btn-xs btn-block" style="margin-top: 10px;">
+                    <button id="cancel-edit-btn" class="btn btn-default btn-xs btn-block">
                         {% trans "Cancel Edit" %}</button>
                 </div>
 
@@ -144,7 +144,7 @@
                     </div>
                 </div>
                 <!-- Already Paid Row -->
-                <div class="row" id="cart-already-paid-row" style="display: none; margin-top: 5px; color: #777;">
+                <div class="row init-hidden" id="cart-already-paid-row">
                     <div class="col-xs-6">
                         <span>{% trans "Already Paid" %}</span>
                     </div>
@@ -153,7 +153,7 @@
                     </div>
                 </div>
                 <!-- Difference Row -->
-                <div class="row" id="cart-difference-row" style="display: none; color: #d9534f; margin-top: 5px;">
+                <div class="row init-hidden" id="cart-difference-row">
                     <div class="col-xs-6">
                         <strong>{% trans "Difference" %}</strong>
                     </div>
@@ -164,7 +164,7 @@
                 <ul id="cart-items" class="list-group">
                     <!-- JavaScript will populate the selected items here -->
                 </ul>
-                <div class="spacer" style="margin-top: 15px;"></div>
+                <div class="spacer"></div>
                 <button id="checkout-btn" class="btn btn-success btn-block"
                     data-checkout-url="{% url 'plugins:pretix_picklePOS:pos_checkout' organizer=request.event.organizer.slug event=request.event.slug %}"
                     disabled>
