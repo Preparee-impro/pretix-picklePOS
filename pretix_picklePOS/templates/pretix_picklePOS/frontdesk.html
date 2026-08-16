@@ -5,8 +5,8 @@
 {% block title %}{% trans "POS Frontdesk" %}{% endblock %}
 
 {% block custom_header %}
-    {{ block.super }}
-    <link rel="stylesheet" type="text/css" href="{% static 'pretix_picklePOS/frontdesk_style.css' %}">
+{{ block.super }}
+<link rel="stylesheet" type="text/css" href="{% static 'pretix_picklePOS/frontdesk_style.css' %}">
 {% endblock %}
 
 {% block content %}
@@ -15,6 +15,26 @@
 
 <!-- div for alerts -->
 <div id="pos-messages"></div>
+
+<!-- Order Search Bar -->
+<div class="panel panel-default">
+    <div class="panel-body">
+        <div class="input-group">
+            <input type="text" id="order-search-input" class="form-control"
+                placeholder="{% trans 'Search by Order ID, Name, or Email...' %}">
+            <span class="input-group-btn">
+                <button class="btn btn-primary" id="order-search-btn" type="button"
+                    data-search-url="{% url 'plugins:pretix_picklePOS:pos_search' organizer=request.event.organizer.slug event=request.event.slug %}"
+                    data-load-url="{% url 'plugins:pretix_picklePOS:pos_load_order' organizer=request.event.organizer.slug event=request.event.slug %}">
+                    <i class="fa fa-search"></i> {% trans "Search" %}
+                </button>
+            </span>
+        </div>
+        <div id="search-results-container" class="list-group" style="margin-top: 15px; display: none;">
+            <!-- Search results will be injected here -->
+        </div>
+    </div>
+</div>
 
 <div class="row">
     <!-- Item Selection Column -->
@@ -42,8 +62,8 @@
                                             <i class="fa fa-minus"></i>
                                         </button>
                                     </span>
-                                    <input type="number" class="form-control text-center item-qty" value="0" min="0" max="99"
-                                        data-item-id="{{ item.id }}" data-variation-id="{{ variation.id }}"
+                                    <input type="number" class="form-control text-center item-qty" value="0" min="0"
+                                        max="99" data-item-id="{{ item.id }}" data-variation-id="{{ variation.id }}"
                                         data-price="{{ variation.price|default:item.default_price|stringformat:'f' }}"
                                         data-name="{{ item.name }} - {{ variation.name }}">
                                     <span class="input-group-btn">
@@ -70,8 +90,8 @@
                                             <i class="fa fa-minus"></i>
                                         </button>
                                     </span>
-                                    <input type="number" class="form-control text-center item-qty" value="0" min="0" max="99"
-                                        data-item-id="{{ item.id }}" data-variation-id=""
+                                    <input type="number" class="form-control text-center item-qty" value="0" min="0"
+                                        max="99" data-item-id="{{ item.id }}" data-variation-id=""
                                         data-price="{{ item.default_price|stringformat:'f' }}"
                                         data-name="{{ item.name }}">
                                     <span class="input-group-btn">
@@ -101,6 +121,16 @@
                 <h3 class="panel-title">{% trans "Current Order" %}</h3>
             </div>
             <div class="panel-body" id="cart-container">
+                <!-- Edit Mode Banner -->
+                <div id="edit-mode-banner" class="alert alert-warning" style="display: none;">
+                    <strong>{% trans "Editing Order:" %} <span id="edit-order-code-display"></span></strong>
+                    <br>
+                    {% trans "Original Total:" %} <span id="edit-original-total">0.00</span>
+                    {{ request.event.currency }}
+                    <button id="cancel-edit-btn" class="btn btn-default btn-xs btn-block" style="margin-top: 10px;">
+                        {% trans "Cancel Edit" %}</button>
+                </div>
+
                 <ul id="cart-items" class="list-group">
                     <!-- JavaScript will populate the selected items here -->
                 </ul>
@@ -113,10 +143,31 @@
                         <strong><span id="cart-total">0.00</span> {{ request.event.currency }}</strong>
                     </div>
                 </div>
+                <!-- Already Paid Row -->
+                <div class="row" id="cart-already-paid-row" style="display: none; margin-top: 5px; color: #777;">
+                    <div class="col-xs-6">
+                        <span>{% trans "Already Paid" %}</span>
+                    </div>
+                    <div class="col-xs-6 text-right">
+                        <span><span id="cart-already-paid">0.00</span> {{ request.event.currency }}</span>
+                    </div>
+                </div>
+                <!-- Difference Row -->
+                <div class="row" id="cart-difference-row" style="display: none; color: #d9534f; margin-top: 5px;">
+                    <div class="col-xs-6">
+                        <strong>{% trans "Difference" %}</strong>
+                    </div>
+                    <div class="col-xs-6 text-right">
+                        <strong><span id="cart-difference">0.00</span> {{ request.event.currency }}</strong>
+                    </div>
+                </div>
+                <ul id="cart-items" class="list-group">
+                    <!-- JavaScript will populate the selected items here -->
+                </ul>
                 <div class="spacer" style="margin-top: 15px;"></div>
-                <button id="checkout-btn" class="btn btn-success btn-block" 
-                data-checkout-url="{% url 'plugins:pretix_picklePOS:pos_checkout' organizer=request.event.organizer.slug event=request.event.slug %}"
-                disabled>
+                <button id="checkout-btn" class="btn btn-success btn-block"
+                    data-checkout-url="{% url 'plugins:pretix_picklePOS:pos_checkout' organizer=request.event.organizer.slug event=request.event.slug %}"
+                    disabled>
                     {% trans "Checkout (Cash)" %}
                 </button>
             </div>

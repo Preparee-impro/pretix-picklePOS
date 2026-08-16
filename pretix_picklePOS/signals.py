@@ -14,7 +14,7 @@ def frontdesk_nav(sender, request, **kwargs):
         "label": _("Front Desk"),
         "icon": "ticket",
         "url": reverse(
-            "plugins:pretix_picklePOS:frontdesk",
+            "plugins:pretix_picklePOS:pos_dashboard",
             kwargs={
                 "organizer": request.organizer.slug,
                 "event": request.event.slug,
@@ -22,6 +22,6 @@ def frontdesk_nav(sender, request, **kwargs):
         ),
         "active": (
             url.namespace == "plugins:pretix_picklePOS"
-            and url.url_name == "frontdesk"
+            and url.url_name == "pos_dashboard"
         )
     }]
