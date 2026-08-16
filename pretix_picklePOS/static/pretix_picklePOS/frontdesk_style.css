@@ -1,0 +1,11 @@
+/* Remove arrows from number inputs in WebKit browsers */
+.item-qty::-webkit-outer-spin-button,
+.item-qty::-webkit-inner-spin-button {
+    display: none;
+}
+
+/* Remove arrows from number inputs in Firefox */
+.item-qty {
+    appearance: textfield;
+    -moz-appearance: textfield;
+}

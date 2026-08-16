@@ -1,10 +1,121 @@
 {% extends "pretixcontrol/event/base.html" %}
+{% load i18n %}
+{% load static %}
 
-{% blocktranslate title %}
-Front Desk
-{% endblocktranslate %}
+{% block title %}{% trans "POS Frontdesk" %}{% endblock %}
 
-{% blocktranslate content %}
-<h1>Front Desk</h1>
-<p>The plugin is working.</p>
-{% endblocktranslate %}
+{% block custom_header %}
+    {{ block.super }}
+    <link rel="stylesheet" type="text/css" href="{% static 'pretix_picklePOS/frontdesk_style.css' %}">
+{% endblock %}
+
+{% block content %}
+<h1>{% trans "Point of Sale" %}</h1>
+
+<div class="row">
+    <!-- Item Selection Column -->
+    <div class="col-md-8">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title">{% trans "Available Tickets" %}</h3>
+            </div>
+            <div class="panel-body">
+                <div class="list-group">
+                    {% for item in items %}
+                    {% if item.variations.all %}
+                    {% for variation in item.variations.all %}
+                    <div class="list-group-item">
+                        <div class="row form-inline">
+                            <div class="col-xs-7">
+                                <strong>{{ item.name }} &ndash; {{ variation.name }}</strong><br>
+                                <small>{{ variation.price|default:item.default_price }} {{ request.event.currency
+                                    }}</small>
+                            </div>
+                            <div class="col-xs-5 text-right">
+                                <div class="input-group input-group-sm">
+                                    <span class="input-group-btn">
+                                        <button class="btn btn-default qty-btn" data-action="minus" type="button">
+                                            <i class="fa fa-minus"></i>
+                                        </button>
+                                    </span>
+                                    <input type="number" class="form-control text-center item-qty" value="0" min="0" max="99"
+                                        data-item-id="{{ item.id }}" data-variation-id="{{ variation.id }}"
+                                        data-price="{{ variation.price|default:item.default_price|stringformat:'f' }}"
+                                        data-name="{{ item.name }} - {{ variation.name }}">
+                                    <span class="input-group-btn">
+                                        <button class="btn btn-default qty-btn" data-action="plus" type="button">
+                                            <i class="fa fa-plus"></i>
+                                        </button>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    {% else %}
+                    <div class="list-group-item">
+                        <div class="row form-inline">
+                            <div class="col-xs-7">
+                                <strong>{{ item.name }}</strong><br>
+                                <small>{{ item.default_price }} {{ request.event.currency }}</small>
+                            </div>
+                            <div class="col-xs-5 text-right">
+                                <div class="input-group input-group-sm">
+                                    <span class="input-group-btn">
+                                        <button class="btn btn-default qty-btn" data-action="minus" type="button">
+                                            <i class="fa fa-minus"></i>
+                                        </button>
+                                    </span>
+                                    <input type="number" class="form-control text-center item-qty" value="0" min="0" max="99"
+                                        data-item-id="{{ item.id }}" data-variation-id=""
+                                        data-price="{{ item.default_price|stringformat:'f' }}"
+                                        data-name="{{ item.name }}">
+                                    <span class="input-group-btn">
+                                        <button class="btn btn-default qty-btn" data-action="plus" type="button">
+                                            <i class="fa fa-plus"></i>
+                                        </button>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% empty %}
+                    <div class="alert alert-info">
+                        {% trans "No active items found." %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cart Summary Column -->
+    <div class="col-md-4">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title">{% trans "Current Order" %}</h3>
+            </div>
+            <div class="panel-body" id="cart-container">
+                <ul id="cart-items" class="list-group">
+                    <!-- JavaScript will populate the selected items here -->
+                </ul>
+                <hr>
+                <div class="row">
+                    <div class="col-xs-6">
+                        <strong>{% trans "Total" %}</strong>
+                    </div>
+                    <div class="col-xs-6 text-right">
+                        <strong><span id="cart-total">0.00</span> {{ request.event.currency }}</strong>
+                    </div>
+                </div>
+                <div class="spacer" style="margin-top: 15px;"></div>
+                <button id="checkout-btn" class="btn btn-success btn-block" disabled>
+                    {% trans "Checkout (Cash)" %}
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="{% static 'pretix_picklePOS/frontdesk.js' %}"></script>
+{% endblock %}
