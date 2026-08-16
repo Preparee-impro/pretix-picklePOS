@@ -100,7 +100,7 @@ class POSCheckoutView(EventPermissionRequiredMixin, View):
                     if diff > 0:
                         # Customer needs to pay more (price increased)
                         order.payments.create(
-                            provider='manual',
+                            provider='pay_at_entrance',
                             amount=diff,
                             state=OrderPayment.PAYMENT_STATE_CONFIRMED,
                             payment_date=now()
@@ -144,7 +144,7 @@ class POSCheckoutView(EventPermissionRequiredMixin, View):
                     order.create_transactions()
                     
                     payment = order.payments.create(
-                        provider='manual',
+                        provider='pay_at_entrance',
                         amount=total,
                         state=OrderPayment.PAYMENT_STATE_CREATED,
                         payment_date=now()
