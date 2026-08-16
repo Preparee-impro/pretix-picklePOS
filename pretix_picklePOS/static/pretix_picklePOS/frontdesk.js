@@ -66,4 +66,76 @@ $(function () {
         $('#cart-total').text(total.toFixed(2));
         $('#checkout-btn').prop('disabled', !hasItems);
     }
+
+    // Handle the Checkout button click
+    $('#checkout-btn').on('click', function (e) {
+        e.preventDefault();
+
+        // Disable button to prevent double-clicks
+        var $btn = $(this);
+        $btn.prop('disabled', true).text('Processing...');
+
+        var orderData = [];
+
+        // Collect all items that have a quantity > 0
+        $('.item-qty').each(function () {
+            var qty = parseInt($(this).val(), 10) || 0;
+            if (qty > 0) {
+                orderData.push({
+                    'item': $(this).data('item-id'),
+                    'variation': $(this).data('variation-id') || null,
+                    'qty': qty
+                });
+            }
+        });
+
+        // Grab the CSRF token from the page
+        var csrfToken = $('input[name="csrfmiddlewaretoken"]').val();
+        var checkoutUrl = $btn.data('checkout-url');
+
+        // Send the data to our Django backend
+        $.ajax({
+            url: checkoutUrl,
+            type: 'POST',
+            headers: {
+                'X-CSRFToken': csrfToken
+            },
+            contentType: 'application/json',
+            data: JSON.stringify({ 'cart': orderData }),
+            success: function (response) {
+                showMessage('success', 'Order <strong>' + response.order_code + '</strong> created successfully!');
+
+                // Reset UI
+                $('.item-qty').val(0);
+                updateCart();
+                $btn.text('Checkout (Cash)');
+            },
+            error: function (xhr, status, error) {
+                var errorMessage = 'Error submitting order.';
+                if (xhr.responseJSON && xhr.responseJSON.error) {
+                    errorMessage += ' ' + xhr.responseJSON.error;
+                }
+                showMessage('danger', errorMessage);
+                console.error(xhr.responseText);
+
+                // Re-enable button
+                $btn.prop('disabled', false).text('Checkout (Cash)');
+            }
+        });
+    });
+
+    function showMessage(type, message) {
+        var alertHtml = '<div class="alert alert-' + type + ' alert-dismissible" role="alert">' +
+                        '<button type="button" class="close" data-dismiss="alert" aria-label="Close">' +
+                        '<span aria-hidden="true">&times;</span></button>' +
+                        message + '</div>';
+        
+        var $messages = $('#pos-messages');
+        $messages.html(alertHtml);
+        
+        // Auto-remove the alert after 5 seconds
+        setTimeout(function() {
+            $messages.empty();
+        }, 5000);
+    }
 });

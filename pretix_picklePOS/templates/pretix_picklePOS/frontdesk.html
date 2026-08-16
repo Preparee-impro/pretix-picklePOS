@@ -10,7 +10,11 @@
 {% endblock %}
 
 {% block content %}
+{% csrf_token %}
 <h1>{% trans "Point of Sale" %}</h1>
+
+<!-- div for alerts -->
+<div id="pos-messages"></div>
 
 <div class="row">
     <!-- Item Selection Column -->
@@ -110,7 +114,9 @@
                     </div>
                 </div>
                 <div class="spacer" style="margin-top: 15px;"></div>
-                <button id="checkout-btn" class="btn btn-success btn-block" disabled>
+                <button id="checkout-btn" class="btn btn-success btn-block" 
+                data-checkout-url="{% url 'plugins:pretix_picklePOS:pos_checkout' organizer=request.event.organizer.slug event=request.event.slug %}"
+                disabled>
                     {% trans "Checkout (Cash)" %}
                 </button>
             </div>
