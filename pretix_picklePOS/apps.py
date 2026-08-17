@@ -1,5 +1,5 @@
-from django.apps import AppConfig
 from django.utils.translation import gettext_lazy as _
+
 from . import __version__
 
 try:
@@ -16,7 +16,9 @@ class PluginApp(PluginConfig):
     class PretixPluginMeta:
         name = _("picklePOS")
         author = "Douwe Somers"
-        description = _("POS system for Pretix that allows quickly creating and modifying orders for front desk staff.")
+        description = _(
+            "POS system for Pretix that allows quickly creating and modifying orders for front desk staff."
+        )
         visible = True
         version = __version__
         category = "FEATURE"

@@ -10,4 +10,13 @@ localegen:
 	# 2. Extract JavaScript strings (creates djangojs.po)
 	django-admin makemessages -d djangojs --add-location file --keep-pot -i build -i dist -i "*egg*" -e js $(LNGS)
 
+checkcode:
+	black --check .
+	isort -c .
+	flake8 .
+
+fixcode:
+	isort .
+	black .
+
 .PHONY: all localecompile localegen
