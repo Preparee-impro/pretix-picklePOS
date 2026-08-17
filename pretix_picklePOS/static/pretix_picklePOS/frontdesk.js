@@ -80,8 +80,18 @@ $(function () {
             $('#cart-difference').text(diff.toFixed(2));
             $('#cart-difference-row').show();
 
-            var btnText = diff >= 0 ? 'Update Order (Pay +' + diff.toFixed(2) + ')' : 'Update Order (Refund ' + diff.toFixed(2) + ')';
-            $('#checkout-btn').text(btnText).prop('disabled', false);
+            var diffText = diff >= 0 ? '(Pay +' + diff.toFixed(2) + ')' : '(Refund ' + Math.abs(diff).toFixed(2) + ')';
+            var btnText = " Update Order " + diffText;
+
+            // 1. Create the icon element dynamically
+            var $icon = $('<i>', { class: 'fa fa-check' });
+
+            // 2. Empty the button, append the icon, and append the text safely
+            $('#checkout-btn')
+                .empty()
+                .append($icon)
+                .append(btnText)
+                .prop('disabled', false);
         } else {
             $('#cart-already-paid-row').hide();
             $('#cart-difference-row').hide();
@@ -127,20 +137,20 @@ $(function () {
                 'cart': orderData,
                 'edit_order_code': currentEditOrder
             }),
-            success: function(response) {
+            success: function (response) {
                 showMessage('success', response.message);
-                
+
                 // Full reset of the POS interface
                 currentEditOrder = null;
                 currentNetPaid = 0.0;
                 $('#edit-mode-banner').slideUp();
                 $('#search-results-container').slideUp().empty();
                 $('#order-search-input').val('');
-                
+
                 // Reset all quantities to 0
                 $('.item-qty').val(0);
                 updateCart();
-                
+
                 // Reset checkout button state and text
                 $btn.prop('disabled', true).text('Checkout (Cash)');
             },
@@ -289,7 +299,7 @@ $(function () {
     });
 
     // Handle canceling the edit mode
-    $('#cancel-edit-btn').on('click', function() {
+    $('#cancel-edit-btn').on('click', function () {
         currentEditOrder = null;
         currentNetPaid = 0.0;
         $('#edit-mode-banner').slideUp();
@@ -297,5 +307,59 @@ $(function () {
         $('#cart-difference-row').hide();
         $('.item-qty').val(0); // Reset UI
         updateCart();
+    });
+
+    // Handle canceling the actual order
+    $('#cancel-order-btn').on('click', function () {
+        if (!currentEditOrder) return;
+
+        // Ask for confirmation before doing something destructive
+        if (!confirm('Are you sure you want to completely cancel this order? This action cannot be undone.')) {
+            return;
+        }
+
+        var $btn = $(this);
+        var cancelUrl = $btn.data('cancel-url');
+        var csrfToken = $('input[name="csrfmiddlewaretoken"]').val();
+
+        // Disable button while processing
+        $btn.prop('disabled', true).text('Canceling...');
+
+        $.ajax({
+            url: cancelUrl,
+            type: 'POST',
+            headers: {
+                'X-CSRFToken': csrfToken
+            },
+            contentType: 'application/json',
+            data: JSON.stringify({
+                'order_code': currentEditOrder
+            }),
+            success: function (response) {
+                showMessage('success', response.message || 'Order successfully canceled.');
+
+                // Full reset of the POS interface
+                currentEditOrder = null;
+                currentNetPaid = 0.0;
+                $('#edit-mode-banner').slideUp();
+                $('#cart-already-paid-row').hide();
+                $('#cart-difference-row').hide();
+                $('.item-qty').val(0);
+                updateCart();
+
+                // Restore button state
+                $btn.prop('disabled', false).html('<i class="fa fa-ban"></i> Cancel Order');
+            },
+            error: function (xhr) {
+                var errorMessage = 'Error canceling order.';
+                if (xhr.responseJSON && xhr.responseJSON.error) {
+                    errorMessage += ' ' + xhr.responseJSON.error;
+                }
+                showMessage('danger', errorMessage);
+
+                // Restore button state
+                $btn.prop('disabled', false).html('<i class="fa fa-ban"></i> Cancel Order');
+            }
+        });
     });
 });

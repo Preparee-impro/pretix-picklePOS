@@ -20,7 +20,8 @@
     margin-top: 15px;
 }
 
-#cancel-edit-btn {
+#cancel-edit-btn,
+#cancel-order-btn {
     margin-top: 10px;
 }
 

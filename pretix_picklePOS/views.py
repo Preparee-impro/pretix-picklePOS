@@ -231,3 +231,51 @@ class POSLoadOrderView(EventPermissionRequiredMixin, View):
             'net_paid': str(net_paid), # Send the actual paid amount to the frontend
             'positions': list(positions)
         })
+
+class POSCancelOrderView(EventPermissionRequiredMixin, View):
+    permission = 'can_change_orders'
+
+    def post(self, request, *args, **kwargs):
+        try:
+            data = json.loads(request.body)
+            order_code = data.get('order_code')
+
+            if not order_code:
+                return JsonResponse({'success': False, 'error': 'No order code provided'}, status=400)
+
+            with transaction.atomic():
+                order = Order.objects.get(code=order_code, event=request.event)
+
+                if order.status == Order.STATUS_CANCELED:
+                    return JsonResponse({'success': False, 'error': 'Order is already canceled'}, status=400)
+
+                # Calculate net amount currently paid
+                paid_sum = sum(p.amount for p in order.payments.filter(state=OrderPayment.PAYMENT_STATE_CONFIRMED))
+                refunded_sum = sum(r.amount for r in order.refunds.filter(state=OrderRefund.REFUND_STATE_DONE))
+                current_paid = paid_sum - refunded_sum
+
+                # Automatically issue a refund for the amount already paid
+                if current_paid > 0:
+                    OrderRefund.objects.create(
+                        order=order,
+                        source=OrderRefund.REFUND_SOURCE_ADMIN,
+                        state=OrderRefund.REFUND_STATE_DONE,
+                        amount=current_paid,
+                        execution_date=now()
+                    )
+                
+                # Set the order status to canceled
+                order.status = Order.STATUS_CANCELED
+                order.save(update_fields=['status'])
+                
+                # Ensure the financial ledger is updated appropriately
+                order.create_transactions()
+
+            return JsonResponse({'success': True, 'message': f'Order {order.code} has been successfully canceled.'})
+
+        except Order.DoesNotExist:
+            return JsonResponse({'success': False, 'error': 'Order not found'}, status=404)
+        except json.JSONDecodeError:
+            return JsonResponse({'success': False, 'error': 'Invalid JSON data'}, status=400)
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)}, status=500)

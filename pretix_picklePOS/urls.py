@@ -20,10 +20,16 @@ urlpatterns = [
         views.POSSearchView.as_view(), 
         name='pos_search'
     ),
-    # Order search
+    # Load order
     path(
         'control/event/<str:organizer>/<str:event>/picklepos/load/', 
         views.POSLoadOrderView.as_view(), 
         name='pos_load_order'
+    ),
+    # Cancel order
+    path(
+        'control/event/<str:organizer>/<str:event>/picklepos/cancel/', 
+        views.POSCancelOrderView.as_view(), 
+        name='pos_cancel_order'
     ),
 ]
