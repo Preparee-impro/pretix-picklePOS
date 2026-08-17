@@ -6,7 +6,7 @@ from django.db.models import Q, Count
 from django.http import JsonResponse
 from django.views.generic import TemplateView, View
 from pretix.control.permissions import EventPermissionRequiredMixin
-from pretix.base.models import Order, OrderPosition, OrderPayment, OrderRefund, Item, ItemVariation, SalesChannel
+from pretix.base.models import Order, OrderPosition, OrderPayment, OrderRefund, Item, ItemVariation, SalesChannel, Checkin, CheckinList
 
 class POSDashboardView(EventPermissionRequiredMixin, TemplateView):
     template_name = 'pretix_picklePOS/frontdesk.html' 
@@ -32,7 +32,7 @@ class POSCheckoutView(EventPermissionRequiredMixin, View):
         try:
             data = json.loads(request.body)
             cart = data.get('cart', [])
-            edit_code = data.get('edit_order_code') # Check if we are editing an order
+            edit_code = data.get('edit_order_code')
             
             if not cart and not edit_code:
                 return JsonResponse({'success': False, 'error': 'Cart is empty'}, status=400)
@@ -48,6 +48,13 @@ class POSCheckoutView(EventPermissionRequiredMixin, View):
             with transaction.atomic():
                 total = Decimal('0.00')
                 positions_to_create = []
+                
+                # Get or create a default CheckinList for the POS
+                checkin_list, _ = CheckinList.objects.get_or_create(
+                    event=request.event,
+                    name='POS Check-ins',
+                    defaults={'all_products': True}
+                )
                 
                 # 1. Gather items securely and calculate the true total
                 for cart_item in cart:
@@ -71,34 +78,35 @@ class POSCheckoutView(EventPermissionRequiredMixin, View):
                     # --- EDIT MODE ---
                     order = Order.objects.get(code=edit_code, event=request.event)
                     
-                    # Calculate net amount currently paid (confirmed payments minus completed refunds)
                     paid_sum = sum(p.amount for p in order.payments.filter(state=OrderPayment.PAYMENT_STATE_CONFIRMED))
                     refunded_sum = sum(r.amount for r in order.refunds.filter(state=OrderRefund.REFUND_STATE_DONE))
                     current_paid = paid_sum - refunded_sum
                     
-                    # Delete old positions and clear old financial transactions safely
+                    # Delete old positions (this will cascade and delete old check-ins too)
                     order.positions.all().delete()
                     
-                    # Update order total
                     order.total = total
                     order.save(update_fields=['total'])
                     
-                    # Create new positions
+                    # Create new positions and check them in
                     for pos in positions_to_create:
-                        OrderPosition.objects.create(
+                        new_position = OrderPosition.objects.create(
                             order=order,
                             item=pos['item'],
                             variation=pos['variation'],
                             price=pos['price'],
                         )
+                        Checkin.objects.create(
+                            position=new_position,
+                            list=checkin_list,
+                            datetime=now(),
+                            type=Checkin.TYPE_ENTRY
+                        )
                     
-                    # Update Pretix financial ledger
                     order.create_transactions()
                     
-                    # Balance the payments/refunds based on the difference from what was actually paid
                     diff = total - current_paid
                     if diff > 0:
-                        # Customer needs to pay more (price increased)
                         order.payments.create(
                             provider='pay_at_entrance',
                             amount=diff,
@@ -106,7 +114,6 @@ class POSCheckoutView(EventPermissionRequiredMixin, View):
                             payment_date=now()
                         )
                     elif diff < 0:
-                        # Customer needs to be refunded (price decreased)
                         OrderRefund.objects.create(
                             order=order,
                             source=OrderRefund.REFUND_SOURCE_ADMIN,
@@ -133,12 +140,19 @@ class POSCheckoutView(EventPermissionRequiredMixin, View):
                     )
                     order.save()
                     
+                    # Create new positions and check them in
                     for pos in positions_to_create:
-                        OrderPosition.objects.create(
+                        new_position = OrderPosition.objects.create(
                             order=order,
                             item=pos['item'],
                             variation=pos['variation'],
                             price=pos['price'],
+                        )
+                        Checkin.objects.create(
+                            position=new_position,
+                            list=checkin_list,
+                            datetime=now(),
+                            type=Checkin.TYPE_ENTRY
                         )
                         
                     order.create_transactions()
@@ -154,13 +168,13 @@ class POSCheckoutView(EventPermissionRequiredMixin, View):
             return JsonResponse({
                 'success': True, 
                 'order_code': order.code,
-                'message': 'Order successfully ' + ('updated' if edit_code else 'created') + '!'
+                'message': 'Order successfully ' + ('updated' if edit_code else 'created') + ' and checked in!'
             })
 
         except Item.DoesNotExist:
             return JsonResponse({'success': False, 'error': 'Item not found'}, status=400)
         except Order.DoesNotExist:
-            return JsonResponse({'success': False, 'error': 'Order to edit not found'}, val=400)
+            return JsonResponse({'success': False, 'error': 'Order to edit not found'}, status=400)
         except json.JSONDecodeError:
             return JsonResponse({'success': False, 'error': 'Invalid JSON'}, status=400)
         except Exception as e:
