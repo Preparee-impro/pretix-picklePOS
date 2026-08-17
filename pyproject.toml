@@ -3,7 +3,7 @@ name = "pretix-picklePOS"
 dynamic = ["version"]
 description = "Alternative POS system for Pretix that allows creating and modifying orders"
 readme = "README.rst"
-license = {text = "Apache"}
+license-files = ["LICENSE"]
 keywords = ["pretix"]
 authors = [
     {name = "Douwe Somers", email = "draakjeyoblama@gmail.com"},

@@ -19,4 +19,7 @@ fixcode:
 	isort .
 	black .
 
+build:
+	python setup.py bdist_wheel
+
 .PHONY: all localecompile localegen
