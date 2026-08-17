@@ -5,6 +5,9 @@ localecompile:
 	django-admin compilemessages
 
 localegen:
+	# 1. Extract Python and HTML strings (creates django.po)
 	django-admin makemessages --add-location file --keep-pot -i build -i dist -i "*egg*" $(LNGS)
+	# 2. Extract JavaScript strings (creates djangojs.po)
+	django-admin makemessages -d djangojs --add-location file --keep-pot -i build -i dist -i "*egg*" -e js $(LNGS)
 
 .PHONY: all localecompile localegen

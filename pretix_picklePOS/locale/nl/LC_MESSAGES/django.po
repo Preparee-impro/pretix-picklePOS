@@ -1,104 +1,99 @@
-# SOME DESCRIPTIVE TITLE.
-# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
-# This file is distributed under the same license as the PACKAGE package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
-#
-#, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: PACKAGE VERSION\n"
+"Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-17 19:08+0200\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language-Team: LANGUAGE <LL@li.org>\n"
-"Language: \n"
+"POT-Creation-Date: 2026-08-17 17:00+0200\n"
+"PO-Revision-Date: \n"
+"Last-Translator: Douwe Somers\n"
+"Language-Team: \n"
+"Language: nl\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
 #: pretix_picklePOS/apps.py
 msgid "picklePOS"
-msgstr ""
+msgstr "picklePOS"
 
 #: pretix_picklePOS/apps.py
 msgid ""
 "POS system for Pretix that allows quickly creating and modifying orders for "
 "front desk staff."
 msgstr ""
+"POS systeem voor Pretix waarmee kassabedienden snel bestellingen kunnen maken en aanpassen."
 
 #: pretix_picklePOS/channels.py
 msgid "picklePOS Frontdesk"
-msgstr ""
+msgstr "picklePOS Kassa"
 
 #: pretix_picklePOS/payment.py
 msgid "Pay at Entrance (Reservation)"
-msgstr ""
+msgstr "Betaal aan de kassa (Reservatie)"
 
 #: pretix_picklePOS/payment.py
 msgid "You will pay for your tickets when you arrive at the entrance."
-msgstr ""
+msgstr "Betaal voor je tickets aan de ingang"
 
 #: pretix_picklePOS/signals.py
 msgid "Front Desk"
-msgstr ""
+msgstr "Kassa"
 
 #: pretix_picklePOS/templates/pretix_picklePOS/frontdesk.html
 msgid "POS Frontdesk"
-msgstr ""
+msgstr "Kassa"
 
 #: pretix_picklePOS/templates/pretix_picklePOS/frontdesk.html
 msgid "Point of Sale"
-msgstr ""
+msgstr "Kassa"
 
 #: pretix_picklePOS/templates/pretix_picklePOS/frontdesk.html
 msgid "Search by Order ID, Name, or Email..."
-msgstr ""
+msgstr "Zoek Bestelling ID, Naam, of E-mail..."
 
 #: pretix_picklePOS/templates/pretix_picklePOS/frontdesk.html
 msgid "Search"
-msgstr ""
+msgstr "Zoek"
 
 #: pretix_picklePOS/templates/pretix_picklePOS/frontdesk.html
 msgid "Available Tickets"
-msgstr ""
+msgstr "Beschikbare Tickets"
 
 #: pretix_picklePOS/templates/pretix_picklePOS/frontdesk.html
 msgid "No active items found."
-msgstr ""
+msgstr "Geen actieve items gevonden."
 
 #: pretix_picklePOS/templates/pretix_picklePOS/frontdesk.html
 msgid "Current Order"
-msgstr ""
+msgstr "Huidige Bestelling"
 
 #: pretix_picklePOS/templates/pretix_picklePOS/frontdesk.html
 msgid "Editing Order:"
-msgstr ""
+msgstr "Bestelling aanpassen:"
 
 #: pretix_picklePOS/templates/pretix_picklePOS/frontdesk.html
 msgid "Original Total:"
-msgstr ""
+msgstr "Origineel Totaal:"
 
 #: pretix_picklePOS/templates/pretix_picklePOS/frontdesk.html
 msgid "Discard Edit"
-msgstr ""
+msgstr "Aanpassing Annuleren"
 
 #: pretix_picklePOS/templates/pretix_picklePOS/frontdesk.html
 msgid "Cancel Order"
-msgstr ""
+msgstr "Bestelling Annuleren"
 
 #: pretix_picklePOS/templates/pretix_picklePOS/frontdesk.html
 msgid "Total"
-msgstr ""
+msgstr "Totaal"
 
 #: pretix_picklePOS/templates/pretix_picklePOS/frontdesk.html
 msgid "Already Paid"
-msgstr ""
+msgstr "Al Betaald"
 
 #: pretix_picklePOS/templates/pretix_picklePOS/frontdesk.html
 msgid "Difference"
-msgstr ""
+msgstr "Verschil"
 
 #: pretix_picklePOS/templates/pretix_picklePOS/frontdesk.html
 msgid "Checkout (Cash)"
-msgstr ""
+msgstr "Betaald (Cash)"

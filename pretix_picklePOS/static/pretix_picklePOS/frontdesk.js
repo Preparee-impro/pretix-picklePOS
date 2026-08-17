@@ -32,7 +32,7 @@ $(function () {
         updateCart();
     });
 
-    // Clean up the field when the user clicks away (if they left it totally empty)
+    // Clean up the field when the user clicks away (if they left it empty)
     $('.item-qty').on('blur', function () {
         if ($(this).val() === '' || isNaN(parseInt($(this).val(), 10))) {
             $(this).val(0);
@@ -60,16 +60,27 @@ $(function () {
                 total += lineTotal;
 
                 // Add the item to the cart summary
-                var listItem = $('<li class="list-group-item"></li>');
-                listItem.html('<strong>' + qty + 'x</strong> ' + name + ' <span class="pull-right">' + lineTotal.toFixed(2) + '</span>');
-                $cartItems.append(listItem);
+                var $listItem = $('<li>', { class: 'list-group-item' });
+                var $qty = $('<strong>', { text: qty + 'x' });
+                var $price = $('<span>', { class: 'pull-right', text: lineTotal.toFixed(2) });
+
+                // Append them together
+                $listItem.append(
+                    $qty,
+                    document.createTextNode(' ' + name + ' '),
+                    $price
+                );
+
+                $cartItems.append($listItem);
             }
         });
 
         // Update total price and toggle the checkout button
-        $('#cart-total').text(total.toFixed(2));
+        $('#cart-total').text(total.toFixed(2));        
 
         // Handle Edit Mode differences
+        var btnText;
+        var isDisabled;
         if (currentEditOrder) {
             // Update and show Already Paid row
             $('#cart-already-paid').text(currentNetPaid.toFixed(2));
@@ -80,23 +91,37 @@ $(function () {
             $('#cart-difference').text(diff.toFixed(2));
             $('#cart-difference-row').show();
 
-            var diffText = diff >= 0 ? '(Pay +' + diff.toFixed(2) + ')' : '(Refund ' + Math.abs(diff).toFixed(2) + ')';
-            var btnText = " Update Order " + diffText;
+            // Positive or negative difference
+            var diffText;
+            if (diff >= 0) {
+                var diffFormatted = diff.toFixed(2);
+                diffText = interpolate(gettext('(Pay +%s)'), [diffFormatted]);
+            } else {
+                var diffFormatted = Math.abs(diff).toFixed(2);
+                diffText = interpolate(gettext('(Refund %s)'), [diffFormatted]);
+            }
 
-            // 1. Create the icon element dynamically
-            var $icon = $('<i>', { class: 'fa fa-check' });
-
-            // 2. Empty the button, append the icon, and append the text safely
-            $('#checkout-btn')
-                .empty()
-                .append($icon)
-                .append(btnText)
-                .prop('disabled', false);
+            // Set text and disabled state for edit mode
+            btnText = " " + interpolate(gettext("Update Order %s"), [diffText]);
+            isDisabled = false;
         } else {
+            // Hide extra rows for new orders
             $('#cart-already-paid-row').hide();
             $('#cart-difference-row').hide();
-            $('#checkout-btn').text('Checkout (Cash)').prop('disabled', !hasItems);
+
+            // Set text and disabled state for new order mode
+            btnText = " " + gettext('Checkout (Cash)');
+            isDisabled = !hasItems;
         }
+
+        // Common button DOM update logic
+        var $icon = $('<i>', { class: 'fa fa-check' });
+
+        $('#checkout-btn')
+            .prop('disabled', isDisabled)
+            .empty()
+            .append($icon)
+            .append(btnText);
     }
 
     // Handle the Checkout button click
@@ -105,7 +130,7 @@ $(function () {
 
         // Disable button to prevent double-clicks
         var $btn = $(this);
-        $btn.prop('disabled', true).text('Processing...');
+        $btn.prop('disabled', true).text(gettext('Processing...'));
 
         var orderData = [];
 
@@ -151,11 +176,11 @@ $(function () {
                 $('.item-qty').val(0);
                 updateCart();
 
-                // Reset checkout button state and text
-                $btn.prop('disabled', true).text('Checkout (Cash)');
+                // Disable button
+                $btn.prop('disabled', true)
             },
             error: function (xhr, status, error) {
-                var errorMessage = 'Error submitting order.';
+                var errorMessage = gettext('Error submitting order.');
                 if (xhr.responseJSON && xhr.responseJSON.error) {
                     errorMessage += ' ' + xhr.responseJSON.error;
                 }
@@ -163,38 +188,61 @@ $(function () {
                 console.error(xhr.responseText);
 
                 // Re-enable button
-                $btn.prop('disabled', false).text('Checkout (Cash)');
+                $btn.prop('disabled', false)
+            },
+            complete: function () {
+                var $icon = $('<i>', { class: 'fa fa-check' });
+                var btnText = " " + gettext('Checkout (Cash)');
+                $btn.empty()
+                    .append($icon)
+                    .append(btnText)
             }
         });
     });
 
     function showMessage(type, message) {
-        var alertHtml = '<div class="alert alert-' + type + ' alert-dismissible" role="alert">' +
-            '<button type="button" class="close" data-dismiss="alert" aria-label="Close">' +
-            '<span aria-hidden="true">&times;</span></button>' +
-            message + '</div>';
+        const $messages = $('#pos-messages');
 
-        var $messages = $('#pos-messages');
-        $messages.html(alertHtml);
+        // Create the close button
+        const $icon = $('<span>', { 'aria-hidden': 'true' }).html('&times;');
+        const $closeBtn = $('<button>', {
+            type: 'button',
+            class: 'close',
+            'data-dismiss': 'alert',
+            'aria-label': 'Close'
+        }).append($icon);
 
-        // Auto-remove the alert after 5 seconds
+        // Create the alert div, append the button, and safely append the text message
+        const $alert = $('<div>', {
+            class: `alert alert-${type} alert-dismissible`,
+            role: 'alert'
+        }).append($closeBtn, document.createTextNode(message));
+
+        // Clear previous messages and append the new alert
+        $messages.empty().append($alert);
+
+        // Auto-remove the alert after 7 seconds
         setTimeout(function () {
-            $messages.empty();
-        }, 5000);
+            $alert.remove(); // Removes just this specific alert instead of emptying the whole container
+        }, 7000);
     }
 
     // Handle Order Search
     $('#order-search-btn').on('click', function () {
+        var $searchBtn = $(this); // Capture the button reference
         var query = $('#order-search-input').val();
-        var searchUrl = $(this).data('search-url');
+        var searchUrl = $searchBtn.data('search-url');
         var $resultsContainer = $('#search-results-container');
 
         if (query.length < 2) {
-            showMessage('warning', 'Please enter at least 2 characters to search.');
+            showMessage('warning', gettext('Please enter at least 2 characters to search.'));
             return;
         }
 
         $resultsContainer.empty().hide();
+
+        // Disable the button to prevent multiple clicks
+        $searchBtn.prop('disabled', true);
 
         $.ajax({
             url: searchUrl,
@@ -202,7 +250,7 @@ $(function () {
             data: { 'q': query },
             success: function (response) {
                 if (response.results.length === 0) {
-                    showMessage('info', 'No active orders found matching your search.');
+                    showMessage('info', gettext('No active orders found matching your search.'));
                     return;
                 }
 
@@ -210,38 +258,57 @@ $(function () {
                     // Decide what to display for the customer identity
                     var identity = order.name;
                     if (!identity) {
-                        identity = order.email || 'No name or email';
+                        identity = order.email || gettext('No name or email');
                     } else if (order.email) {
                         // If they have both, show Name (Email)
                         identity += ' (' + order.email + ')';
                     }
 
-                    // Check if the order is pending/unpaid (status n)
-                    var badgeStyle = '';
+                    // Create the badge element
+                    var $badge = $('<span>', {
+                        'class': 'pull-right badge',
+                        text: order.total + ' ' + order.currency
+                    });
+
+                    // Check order status
                     if (order.status === 'n') {
-                        // Use Bootstrap's standard yellow/warning color
-                        badgeStyle = 'background-color: #f0ad4e; color: #fff;';
+                        $badge.addClass('unpaid-badge');
+                    } else if (order.status === 'c') {
+                        $badge.addClass('canceled-badge');
                     }
 
-                    var btnHtml = '<button type="button" class="list-group-item load-order-btn" data-order-code="' + order.code + '">' +
-                        '<strong>' + order.code + '</strong> - ' + identity +
-                        ' <span class="pull-right badge" style="' + badgeStyle + '">' +
-                        order.total + ' ' + order.currency +
-                        '</span>' +
-                        '</button>';
-                    $resultsContainer.append(btnHtml);
+                    // Create the order code element
+                    var $orderCode = $('<strong>', {
+                        text: order.code
+                    });
+
+                    // Create the button and append the child elements and text nodes
+                    var $btn = $('<button>', {
+                        type: 'button',
+                        'class': 'list-group-item load-order-btn',
+                        'data-order-code': order.code
+                    }).append($orderCode)
+                        .append(' - ' + identity + ' ')
+                        .append($badge);
+
+                    // Append the newly constructed button to the DOM
+                    $resultsContainer.append($btn);
                 });
 
                 $resultsContainer.slideDown();
             },
             error: function (xhr) {
-                showMessage('danger', 'Error searching for orders.');
+                showMessage('danger', gettext('Error searching for orders.'));
                 console.error(xhr.responseText);
+            },
+            complete: function () {
+                // Re-enable the button once the request finishes
+                $searchBtn.prop('disabled', false);
             }
         });
     });
 
-    // Allow hitting "Enter" in the search box
+    // Allow hitting Enter to search
     $('#order-search-input').on('keypress', function (e) {
         if (e.which === 13) {
             $('#order-search-btn').click();
@@ -293,7 +360,7 @@ $(function () {
                 updateCart();
             },
             error: function (xhr) {
-                showMessage('danger', 'Error loading order details.');
+                showMessage('danger', gettext('Error loading order details.'));
             }
         });
     });
@@ -314,7 +381,7 @@ $(function () {
         if (!currentEditOrder) return;
 
         // Ask for confirmation before doing something destructive
-        if (!confirm('Are you sure you want to completely cancel this order? This action cannot be undone.')) {
+        if (!confirm(gettext('Are you sure you want to completely cancel this order? This action cannot be undone.'))) {
             return;
         }
 
@@ -323,7 +390,7 @@ $(function () {
         var csrfToken = $('input[name="csrfmiddlewaretoken"]').val();
 
         // Disable button while processing
-        $btn.prop('disabled', true).text('Canceling...');
+        $btn.prop('disabled', true).text(gettext('Canceling...'));
 
         $.ajax({
             url: cancelUrl,
@@ -336,7 +403,7 @@ $(function () {
                 'order_code': currentEditOrder
             }),
             success: function (response) {
-                showMessage('success', response.message || 'Order successfully canceled.');
+                showMessage('success', response.message || gettext('Order successfully canceled.'));
 
                 // Full reset of the POS interface
                 currentEditOrder = null;
@@ -346,19 +413,22 @@ $(function () {
                 $('#cart-difference-row').hide();
                 $('.item-qty').val(0);
                 updateCart();
-
-                // Restore button state
-                $btn.prop('disabled', false).html('<i class="fa fa-ban"></i> Cancel Order');
             },
             error: function (xhr) {
-                var errorMessage = 'Error canceling order.';
+                var errorMessage = gettext('Error canceling order.');
                 if (xhr.responseJSON && xhr.responseJSON.error) {
                     errorMessage += ' ' + xhr.responseJSON.error;
                 }
                 showMessage('danger', errorMessage);
-
+            },
+            complete: function () {
                 // Restore button state
-                $btn.prop('disabled', false).html('<i class="fa fa-ban"></i> Cancel Order');
+                var $icon = $('<i>', { class: 'fa fa-ban' });
+                var btnText = " " + gettext('Cancel Order');
+                $btn.prop('disabled', false)
+                    .empty()
+                    .append($icon)
+                    .append(btnText)
             }
         });
     });

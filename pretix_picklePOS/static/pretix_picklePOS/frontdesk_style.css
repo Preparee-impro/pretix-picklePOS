@@ -35,6 +35,16 @@
     margin-top: 5px;
 }
 
+.unpaid-badge {
+    background-color: #f0ad4e;
+    color: #fff;
+}
+
+.canceled-badge {
+    background-color: #d9534f;
+    color: #fff;
+}
+
 .spacer {
     margin-top: 15px;
 }
